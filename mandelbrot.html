@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>The Mandelbrot Set in HTML5 Canvas &amp; JavaScript</title>
+    <title>The Newton Fractal of exp(z) - 1 in HTML5 Canvas &amp; JavaScript</title>
     <!--
      The Mandelbrot Set, in HTML5 canvas and javascript.
      https://github.com/cslarsen/mandelbrot-js
@@ -151,7 +151,7 @@
       <header>
         <div style="text-align: center;">
           <hr />
-          <h1>The Mandelbrot Set</h1>
+          <h1>The Newton Fractal of exp(z) - 1</h1>
           <p class="headerText">In HTML5 Canvas and JavaScript</p>
           <hr />
         </div>
@@ -175,8 +175,6 @@
           <td>Iterations</td>
           <td>
             <input class="textInput" size="4" type="text" id="steps" value="50" />
-            <input type="checkbox" id="autoIterations" checked="checked"/>
-            <small>auto</small></td>
         </tr>
         <tr>
           <td>Escape radius</td>
@@ -187,17 +185,10 @@
           <td>Color scheme</td>
           <td>
             <select id="colorScheme">
-              <option value="Grayscale">Grayscale #1</option>
-              <option value="HSV1">HSV #1</option>
-              <option value="HSV2">HSV #2 Red</option>
-              <option value="HSV3">HSV #2 Blue</option>
-              <option value="Grayscale2">Grayscale #2</option>
+              <option value="Grayscale">Grayscale</option>
+              <option value="Colored">Colored</option>
             </select>
           </td>
-        </tr>
-        <tr>
-          <td>Supersamples</td>
-          <td><input class="textInput" size="4" type="text" id="superSamples" value="1" /></td>
         </tr>
         <tr>
           <td>Scanline update (ms)</td>
@@ -222,8 +213,8 @@
 
       <div id="bottom">
         <small>
-          Made by <a href="https://csl.name">Christian Stigen Larsen</a> &mdash;
-          <a href="https://github.com/cslarsen/mandelbrot-js">Code on Github</a>
+          Made by <a href="http://elad.zelingher.com/">Elad Zelingher</a> based on <a href="https://csl.name">Christian Stigen Larsen</a>'s code &mdash;
+          <a href="https://github.com/darkl/mandelbrot-js">Code on Github</a>
           <br/> &nbsp; <br/>
           Click + drag to zoom in, shift +click to zoom out.
           You can change the settings above and hit <i>Draw</i> to render

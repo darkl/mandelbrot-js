@@ -129,6 +129,118 @@ class ColorGrayScale2 extends ColorGrayScale {
     }
 }
 
+class NewtonGrayscaleColorGenerator implements IColorGenerator<number[]> {
+    private _steps: number;
+
+    constructor(steps: number) {
+        this._steps = steps;
+    }
+
+    getColor(data: number[]): number[] {
+        var n = data[0];
+        if (n === this._steps) // converged?
+            return interiorColor;
+        var gray = 255.0 * ((this._steps-data[0]) / (this._steps * 1.0));
+        return [gray, gray, gray, 255];
+    }
+}
+
+class NewtonColorfulColorGenerator implements IColorGenerator<number[]> {
+    private _factor: number;
+    private _steps: number;
+
+    constructor(steps: number, factor : number) {
+        this._factor = factor;
+        this._steps = steps;
+    }
+
+    getColor(data: number[]): number[] {
+        var [n,x,y] = data;
+        if (n === this._steps) // converged?
+            return interiorColor;
+
+        var rounded = Math.round(y / (2 * Math.PI));
+
+        var product = rounded * this._factor;
+
+        var r = product % 255;
+        product /= 255;
+        var g = product % 255;
+        product /= 255;
+        var b = product % 255;
+
+        var array = [r, g, b];
+
+        for (let i = 0; i < array.length; i++) {
+            let value = array[i];
+            if (value < 0) {
+                array[i] = value + 255;
+            }
+        }
+
+        var scale = (this._steps-n) / (this._steps * 1.0);
+
+        for (let i = 0; i < array.length; i++) {
+            array[i] *= scale;
+        }
+
+        return [...array, 255];
+    }
+}
+
+
+class NewtonAlgorithm {
+    private _iterations: number;
+    private _escapeRadius: number;
+
+    constructor(radius: number, iterations: number) {
+        this._iterations = iterations;
+        this._escapeRadius = Math.pow(10, -radius);
+    }
+
+    public iterateEquation(cRealPart: number, cImaginaryPart: number) {
+        var zRealPart = cRealPart;
+        var zImaginaryPart = cImaginaryPart;
+        var zRealSquared;
+        var zImaginarySquared;
+        var n = 0;
+
+        do {
+            var modulus = Math.exp(zRealPart);
+            var cosine = Math.cos(zImaginaryPart);
+            var sine = Math.sin(zImaginaryPart);
+
+            var realFunc = -1 + modulus * cosine;
+            var imaginaryFunc = modulus * sine;
+
+            var modulusInverse = Math.exp(-zRealPart);
+            zRealPart = zRealPart - 1 + modulusInverse * cosine;
+            zImaginaryPart = zImaginaryPart - modulusInverse * sine;
+
+            zRealSquared = realFunc * realFunc;
+            zImaginarySquared = imaginaryFunc * imaginaryFunc;
+            n++;
+        }
+        while ((n < this._iterations) && (zRealSquared + zImaginarySquared) >= this._escapeRadius)
+
+        if (!(zRealSquared + zImaginarySquared < this._escapeRadius)) {
+            n = this._iterations;
+        }
+
+        return [n, zRealPart, zImaginaryPart];
+    }
+
+    public static ColorGenerator = new class {
+        Grayscale(steps: number) {
+            return new NewtonGrayscaleColorGenerator(steps);
+        }
+
+        Colored(steps: number) {
+            return new NewtonColorfulColorGenerator(steps, 6408327);
+        }
+    }
+}
+
 class MandelbrotAlgorithm {
     private _iterations: number;
     private _escapeRadius: number;
@@ -213,9 +325,9 @@ class MandelbrotAlgorithm {
 /*
  * Global variables:
  */
-var zoomStart = 3.4;
-var zoom = [zoomStart, zoomStart];
-var lookAtDefault = [-0.6, 0];
+var zoomStart = [4 * Math.PI, 3 * Math.PI];
+var zoom = [4 * Math.PI, 3 * Math.PI];
+var lookAtDefault = [0, 0];
 var lookAt = lookAtDefault;
 var xRange = [0, 0];
 var yRange = [0, 0];
@@ -254,12 +366,13 @@ function focusOnSubmit() {
 
 function getColorPicker(): (steps) => IColorGenerator<number[]> {
     var colorSchemeValue = $<HTMLSelectElement>("colorScheme").value;
-    return MandelbrotAlgorithm.ColorGenerator[colorSchemeValue];
+    return NewtonAlgorithm.ColorGenerator[colorSchemeValue];
 }
 
 function getSamples() {
-    var i = parseInt($<HTMLInputElement>('superSamples').value, 10);
-    return i <= 0 ? 1 : i;
+    return 1;
+    //var i = parseInt($<HTMLInputElement>('superSamples').value, 10);
+    //return i <= 0 ? 1 : i;
 }
 
 /*
@@ -272,7 +385,7 @@ function updateHashTag(samples: number, iterations: number) {
     location.hash = 'zoom=' + zoom + '&' +
         'lookAt=' + lookAt + '&' +
         'iterations=' + iterations + '&' +
-        'superSamples=' + samples + '&' +
+        //'superSamples=' + samples + '&' +
         'escapeRadius=' + radius + '&' +
         'colorScheme=' + scheme;
 }
@@ -316,7 +429,8 @@ function readHashTag() {
 
             case 'iterations': {
                 $<HTMLInputElement>('steps').value = String(parseInt(val, 10));
-                $<HTMLInputElement>('autoIterations').checked = false;
+                //$<HTMLInputElement>('autoIterations').checked = false;                    
+
                 redraw = true;
             } break;
 
@@ -425,8 +539,8 @@ function divRGB(v: number[], div: number) {
  * Render the Mandelbrot set
  */
 function draw(generatorFactory: (steps:number) => IColorGenerator<number[]>, superSamples: number) {
-    if (lookAt === null) lookAt = [-0.6, 0];
-    if (zoom === null) zoom = [zoomStart, zoomStart];
+    if (lookAt === null) lookAt = [-Math.PI, -Math.PI];
+    if (zoom === null) zoom = zoomStart;
 
     xRange = [lookAt[0] - zoom[0] / 2, lookAt[0] + zoom[0] / 2];
     yRange = [lookAt[1] - zoom[1] / 2, lookAt[1] + zoom[1] / 2];
@@ -450,19 +564,19 @@ function draw(generatorFactory: (steps:number) => IColorGenerator<number[]>, sup
 
     var steps = parseInt($<HTMLInputElement>('steps').value, 10);
 
-    if ($<HTMLInputElement>('autoIterations').checked) {
-        var f = Math.sqrt(
-            0.001 + 2.0 * Math.min(
-                Math.abs(xRange[0] - xRange[1]),
-                Math.abs(yRange[0] - yRange[1])));
+    //if ($<HTMLInputElement>('autoIterations').checked) {
+    //    var f = Math.sqrt(
+    //        0.001 + 2.0 * Math.min(
+    //            Math.abs(xRange[0] - xRange[1]),
+    //            Math.abs(yRange[0] - yRange[1])));
 
-        steps = Math.floor(223.0 / f);
-        $<HTMLInputElement>('steps').value = String(steps);
-    }
+    //    steps = Math.floor(223.0 / f);
+    //    $<HTMLInputElement>('steps').value = String(steps);
+    //}
 
     var generator = generatorFactory(steps);
 
-    var escapeRadius = Math.pow(parseFloat($<HTMLInputElement>('escapeRadius').value), 2.0);
+    var escapeRadius = parseFloat($<HTMLInputElement>('escapeRadius').value);
     var dx = (xRange[1] - xRange[0]) / (0.5 + (canvas.width - 1));
     var dy = (yRange[1] - yRange[0]) / (0.5 + (canvas.height - 1));
     var Ci_step = (yRange[1] - yRange[0]) / (0.5 + (canvas.height - 1));
@@ -473,7 +587,7 @@ function draw(generatorFactory: (steps:number) => IColorGenerator<number[]>, sup
     // Only enable one render at a time
     renderId += 1;
 
-    var fractal = new MandelbrotAlgorithm(escapeRadius, steps);
+    var fractal = new NewtonAlgorithm(escapeRadius, steps);
 
     function drawLineSuperSampled(Ci: number, off: number, Cr_init: number, Cr_step: number) {
         var Cr = Cr_init;
@@ -601,13 +715,13 @@ function main() {
 
     $<HTMLInputElement>('steps').onkeypress = (): void => {
         // disable auto-iterations when user edits it manually
-        $<HTMLInputElement>('autoIterations').checked = false;
+        //$<HTMLInputElement>('autoIterations').checked = false;
     }
 
     $<HTMLInputElement>('resetButton').onclick = event => {
         $<HTMLFormElement>('settingsForm').reset();
         setTimeout(() => { location.hash = ''; }, 1);
-        zoom = [zoomStart, zoomStart];
+        zoom = zoomStart;
         lookAt = lookAtDefault;
         reInitCanvas = true;
         draw(getColorPicker(), getSamples());
