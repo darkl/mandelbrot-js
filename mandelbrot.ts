@@ -160,7 +160,7 @@ class NewtonColorfulColorGenerator implements IColorGenerator<number[]> {
             return interiorColor;
 
         var rounded = Math.round(y / (2 * Math.PI));
-
+        rounded = rounded + 32;
         var product = rounded * this._factor;
 
         var r = product % 255;
@@ -325,8 +325,8 @@ class MandelbrotAlgorithm {
 /*
  * Global variables:
  */
-var zoomStart = [4 * Math.PI, 3 * Math.PI];
-var zoom = [4 * Math.PI, 3 * Math.PI];
+var zoomStart = [8 * Math.PI, 6 * Math.PI];
+var zoom = [8 * Math.PI, 6 * Math.PI];
 var lookAtDefault = [0, 0];
 var lookAt = lookAtDefault;
 var xRange = [0, 0];
