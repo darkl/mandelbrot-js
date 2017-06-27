@@ -450,8 +450,6 @@ function draw(generatorFactory: (steps:number) => IColorGenerator<number[]>, sup
 
     var steps = parseInt($<HTMLInputElement>('steps').value, 10);
 
-    var generator = generatorFactory(steps);
-
     if ($<HTMLInputElement>('autoIterations').checked) {
         var f = Math.sqrt(
             0.001 + 2.0 * Math.min(
@@ -461,6 +459,8 @@ function draw(generatorFactory: (steps:number) => IColorGenerator<number[]>, sup
         steps = Math.floor(223.0 / f);
         $<HTMLInputElement>('steps').value = String(steps);
     }
+
+    var generator = generatorFactory(steps);
 
     var escapeRadius = Math.pow(parseFloat($<HTMLInputElement>('escapeRadius').value), 2.0);
     var dx = (xRange[1] - xRange[0]) / (0.5 + (canvas.width - 1));
