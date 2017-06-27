@@ -132,7 +132,7 @@ function iterateEquation(Cr: number, Ci: number, escapeRadius: number, iteration
 /*
  * Update URL's hash with render parameters so we can pass it around.
  */
-function updateHashTag(samples, iterations)
+function updateHashTag(samples : number, iterations : number)
 {
   var radius = $<HTMLInputElement>('escapeRadius').value;
   var scheme = $<HTMLInputElement>('colorScheme').value;
@@ -570,7 +570,7 @@ function main()
   };
 
   if ( dragToZoom ) {
-    var box = null;
+    var box : number[] = null;
 
     $<HTMLCanvasElement>('canvasControls').onmousedown = e => {
         if ( box == null )
@@ -593,7 +593,7 @@ function main()
         }
     }
 
-    var zoomOut = event => {
+    var zoomOut = (event : MouseEvent) => {
         var x = event.clientX;
         var y = event.clientY;
 
