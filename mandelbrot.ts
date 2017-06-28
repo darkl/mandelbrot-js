@@ -160,7 +160,13 @@ class NewtonColorfulColorGenerator implements IColorGenerator<number[]> {
             return interiorColor;
 
         var rounded = Math.round(y / (2 * Math.PI));
-        rounded = rounded + 32;
+
+        if (rounded < 0) {
+            rounded = -2 * rounded;
+        } else {
+            rounded = 2 * rounded + 1;
+        }
+
         var product = rounded * this._factor;
 
         var r = product % 255;
